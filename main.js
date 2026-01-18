@@ -7,13 +7,16 @@ const container = document.getElementById("chart");
 const width = container.clientWidth;
 const height = 600;
 
-// Color Scale - Premium Palette
-const color = d3.scaleOrdinal(d3.schemeTableau10);
-// Alternative custom palette for a more "financial" look
-// const color = d3.scaleOrdinal()
-//   .domain(["Source", "Hub", "Expense", "Savings", "Sub-Expense"])
-//   .range(["#10b981", "#3b82f6", "#ef4444", "#8b5cf6", "#f97316"]);
-
+// Color Scale - Professional Financial Palette
+const color = d3.scaleOrdinal()
+    .domain(["Source", "Hub", "Expense", "Savings", "Sub-Expense"])
+    .range([
+        "#60a5fa", // Light Blue (Income)
+        "#94a3b8", // Slate (Flow Hub)
+        "#f87171", // Muted Red (Expenses)
+        "#34d399", // Emerald (Savings)
+        "#818cf8"  // Indigo (Investments/Others)
+    ]);
 
 // Create SVG
 const svg = d3.select("#chart")
@@ -29,8 +32,8 @@ const tooltip = d3.select("body").append("div")
 
 // Sankey Generator
 const sankey = d3Sankey()
-    .nodeWidth(15)
-    .nodePadding(20)
+    .nodeWidth(10) // Thinner nodes for formal look
+    .nodePadding(24) // More space
     .extent([[1, 1], [width - 1, height - 6]]);
 
 // Process Data
@@ -65,7 +68,7 @@ const link = svg.append("g")
     .selectAll("g")
     .data(links)
     .join("g")
-    .attr("stroke-opacity", 0.5);
+    .attr("stroke-opacity", 0.3); // Start more subtle
 
 link.append("path")
     .attr("d", sankeyLinkHorizontal())
@@ -74,14 +77,14 @@ link.append("path")
     .attr("class", "link")
     .on("mouseover", function (event, d) {
         d3.select(this).style("stroke-opacity", 0.8);
-        tooltip.transition().duration(200).style("opacity", .9);
-        tooltip.html(`${d.source.name} → ${d.target.name}<br/><b>$${d.value}</b>`)
+        tooltip.transition().duration(200).style("opacity", 1);
+        tooltip.html(`<div style="font-weight:600;margin-bottom:4px;">${d.source.name} → ${d.target.name}</div><div>$${d.value.toLocaleString()}</div>`)
             .style("left", (event.pageX + 10) + "px")
             .style("top", (event.pageY - 28) + "px");
     })
     .on("mouseout", function () {
-        d3.select(this).style("stroke-opacity", 0.5);
-        tooltip.transition().duration(500).style("opacity", 0);
+        d3.select(this).style("stroke-opacity", 0.3);
+        tooltip.transition().duration(200).style("opacity", 0);
     });
 
 // Render Nodes
@@ -95,14 +98,15 @@ const node = svg.append("g")
     .attr("width", d => d.x1 - d.x0)
     .attr("fill", d => color(d.name))
     .attr("class", "node")
+    .attr("rx", 2) // Slight rounded corners
     .on("mouseover", function (event, d) {
-        tooltip.transition().duration(200).style("opacity", .9);
-        tooltip.html(`<b>${d.name}</b><br/>Value: $${d.value}`)
+        tooltip.transition().duration(200).style("opacity", 1);
+        tooltip.html(`<div style="font-weight:600;margin-bottom:4px;">${d.name}</div><div>Value: $${d.value.toLocaleString()}</div>`)
             .style("left", (event.pageX + 10) + "px")
             .style("top", (event.pageY - 28) + "px");
     })
     .on("mouseout", function () {
-        tooltip.transition().duration(500).style("opacity", 0);
+        tooltip.transition().duration(200).style("opacity", 0);
     });
 
 // Node Labels
@@ -111,11 +115,11 @@ svg.append("g")
     .selectAll("text")
     .data(nodes)
     .join("text")
-    .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+    .attr("x", d => d.x0 < width / 2 ? d.x1 + 8 : d.x0 - 8)
     .attr("y", d => (d.y1 + d.y0) / 2)
     .attr("dy", "0.35em")
     .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
     .text(d => d.name)
     .style("fill", "var(--text-primary)")
-    .style("font-weight", "600");
-
+    .style("font-weight", "500")
+    .style("letter-spacing", "0.01em");
